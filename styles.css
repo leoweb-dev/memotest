@@ -250,10 +250,14 @@ body {
   background: linear-gradient(160deg, #fff 60%, #f7faf8 100%);
 }
 
-.carta-emoji {
-  font-size: clamp(2rem, 7vw, 3.4rem);
-  line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+.carta-bandera-img {
+  width: 75%;
+  max-width: 88px;
+  height: auto;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  object-fit: cover;
+  display: block;
 }
 
 /* Carta tipo NOMBRE */

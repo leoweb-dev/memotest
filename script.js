@@ -1,20 +1,21 @@
 /* =============================================
    MEMOTEST DEL MUNDIAL — script.js
    Vanilla JS — sin librerías externas
+   Banderas via flagcdn.com (compatible con todos los SO)
    ============================================= */
 
 'use strict';
 
 // ── 1. DATOS: 8 países del Mundial ─────────────────────────────────────────
 const PAISES = [
-  { id: 'argentina', bandera: '🇦🇷', nombre: 'Argentina' },
-  { id: 'brasil',    bandera: '🇧🇷', nombre: 'Brasil'    },
-  { id: 'uruguay',   bandera: '🇺🇾', nombre: 'Uruguay'   },
-  { id: 'francia',   bandera: '🇫🇷', nombre: 'Francia'   },
-  { id: 'españa',    bandera: '🇪🇸', nombre: 'España'    },
-  { id: 'alemania',  bandera: '🇩🇪', nombre: 'Alemania'  },
-  { id: 'japon',     bandera: '🇯🇵', nombre: 'Japón'     },
-  { id: 'usa',       bandera: '🇺🇸', nombre: 'EE.UU.'    },
+  { id: 'argentina', codigo: 'ar', nombre: 'Argentina' },
+  { id: 'brasil',    codigo: 'br', nombre: 'Brasil'    },
+  { id: 'uruguay',   codigo: 'uy', nombre: 'Uruguay'   },
+  { id: 'francia',   codigo: 'fr', nombre: 'Francia'   },
+  { id: 'españa',    codigo: 'es', nombre: 'España'    },
+  { id: 'alemania',  codigo: 'de', nombre: 'Alemania'  },
+  { id: 'japon',     codigo: 'jp', nombre: 'Japón'     },
+  { id: 'usa',       codigo: 'us', nombre: 'EE.UU.'    },
 ];
 
 // ── 2. ESTADO DEL JUEGO ─────────────────────────────────────────────────────
@@ -26,10 +27,10 @@ let estado = {
 };
 
 // ── 3. REFERENCIAS AL DOM ───────────────────────────────────────────────────
-const tablero      = document.getElementById('tablero');
-const contadorEl   = document.getElementById('contador');
-const parejasEl    = document.getElementById('parejas');
-const btnReiniciar = document.getElementById('btnReiniciar');
+const tablero           = document.getElementById('tablero');
+const contadorEl        = document.getElementById('contador');
+const parejasEl         = document.getElementById('parejas');
+const btnReiniciar      = document.getElementById('btnReiniciar');
 const overlayGanador    = document.getElementById('overlayGanador');
 const intentosFinalesEl = document.getElementById('intentosFinales');
 const btnJugarNuevo     = document.getElementById('btnJugarNuevo');
@@ -45,21 +46,31 @@ function mezclar(arr) {
   return arr;
 }
 
+/** URL de bandera para un código ISO de país */
+function urlBandera(codigo) {
+  return `https://flagcdn.com/w80/${codigo}.png`;
+}
+function urlBandera2x(codigo) {
+  return `https://flagcdn.com/w160/${codigo}.png`;
+}
+
 /** Construye el array de 16 objetos-carta a partir de PAISES */
 function generarCartas() {
   const cartas = [];
   PAISES.forEach(pais => {
     // Carta de bandera
     cartas.push({
-      tipo: 'bandera',
+      tipo:   'bandera',
       paisId: pais.id,
-      contenido: pais.bandera,
+      codigo: pais.codigo,
+      nombre: pais.nombre,
     });
     // Carta de nombre
     cartas.push({
-      tipo: 'nombre',
+      tipo:   'nombre',
       paisId: pais.id,
-      contenido: pais.nombre,
+      codigo: pais.codigo,
+      nombre: pais.nombre,
     });
   });
   return mezclar(cartas);
@@ -78,37 +89,38 @@ function renderizarTablero() {
     el.dataset.tipo   = carta.tipo;
     el.dataset.index  = index;
 
+    const contenidoFrente = carta.tipo === 'bandera'
+      ? `<img
+           class="carta-bandera-img"
+           src="${urlBandera(carta.codigo)}"
+           srcset="${urlBandera2x(carta.codigo)} 2x"
+           alt="Bandera de ${carta.nombre}"
+           loading="lazy"
+         />
+         <span class="carta-tag">Bandera</span>`
+      : `<span class="carta-nombre">${carta.nombre}</span>
+         <span class="carta-tag">País</span>`;
+
     el.innerHTML = `
       <div class="carta-inner">
-
-        <!-- DORSO (vista inicial) -->
         <div class="carta-dorso" aria-hidden="true">
           <span class="dorso-icon">⚽</span>
         </div>
-
-        <!-- FRENTE (vista al voltear) -->
         <div class="carta-frente">
-          ${carta.tipo === 'bandera'
-            ? `<span class="carta-emoji">${carta.contenido}</span>
-               <span class="carta-tag">Bandera</span>`
-            : `<span class="carta-nombre">${carta.contenido}</span>
-               <span class="carta-tag">País</span>`
-          }
+          ${contenidoFrente}
         </div>
-
       </div>
     `;
 
-    // Accesibilidad básica
+    // Accesibilidad
     el.setAttribute('role', 'button');
     el.setAttribute('tabindex', '0');
     el.setAttribute('aria-label',
       carta.tipo === 'bandera'
-        ? `Bandera de ${PAISES.find(p => p.id === carta.paisId).nombre}`
-        : `Nombre: ${carta.contenido}`
+        ? `Bandera de ${carta.nombre}`
+        : `Nombre del país: ${carta.nombre}`
     );
 
-    // Eventos
     el.addEventListener('click', () => manejarClic(el));
     el.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') manejarClic(el);
@@ -121,29 +133,24 @@ function renderizarTablero() {
 // ── 6. LÓGICA PRINCIPAL ─────────────────────────────────────────────────────
 
 function manejarClic(carta) {
-  // Ignorar si el tablero está bloqueado, la carta ya está encontrada
-  // o si es la misma carta que ya fue volteada
   if (
     estado.bloqueado ||
     carta.classList.contains('encontrada') ||
     carta.classList.contains('volteada')
   ) return;
 
-  // Voltear la carta
   carta.classList.add('volteada');
   estado.cartasVolteadas.push(carta);
 
-  // Si es la primera carta, esperar la segunda
   if (estado.cartasVolteadas.length < 2) return;
 
-  // ── Dos cartas seleccionadas: evaluar ──
   estado.bloqueado = true;
   estado.intentos++;
   actualizarContador();
 
   const [cartaA, cartaB] = estado.cartasVolteadas;
-  const mismoId    = cartaA.dataset.paisId === cartaB.dataset.paisId;
-  const tiposDist  = cartaA.dataset.tipo   !== cartaB.dataset.tipo;
+  const mismoId   = cartaA.dataset.paisId === cartaB.dataset.paisId;
+  const tiposDist = cartaA.dataset.tipo   !== cartaB.dataset.tipo;
 
   if (mismoId && tiposDist) {
     // ✅ Pareja correcta
@@ -218,7 +225,6 @@ function reiniciarJuego() {
 btnReiniciar.addEventListener('click', reiniciarJuego);
 btnJugarNuevo.addEventListener('click', reiniciarJuego);
 
-// Cerrar overlay al hacer clic fuera del cartel
 overlayGanador.addEventListener('click', e => {
   if (e.target === overlayGanador) reiniciarJuego();
 });
