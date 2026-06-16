@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memotest del Mundial ⚽</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Encabezado -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="titulo-wrap">
+        <span class="balon">⚽</span>
+        <h1 class="titulo">Memotest<br><span class="titulo-sub">del Mundial</span></h1>
+        <span class="balon">🏆</span>
+      </div>
+      <p class="instruccion">Uní cada bandera con el nombre de su país</p>
+    </div>
+  </header>
+
+  <!-- Panel de estadísticas -->
+  <div class="panel-stats">
+    <div class="stat-box">
+      <span class="stat-label">Intentos</span>
+      <span class="stat-value" id="contador">0</span>
+    </div>
+    <button class="btn-reiniciar" id="btnReiniciar">
+      🔄 Reiniciar
+    </button>
+    <div class="stat-box">
+      <span class="stat-label">Parejas</span>
+      <span class="stat-value"><span id="parejas">0</span>/8</span>
+    </div>
+  </div>
+
+  <!-- Tablero de juego -->
+  <main class="tablero-wrap">
+    <div class="tablero" id="tablero"></div>
+  </main>
+
+  <!-- Cartel de felicitación -->
+  <div class="overlay-ganador" id="overlayGanador" aria-hidden="true">
+    <div class="cartel-ganador">
+      <div class="trofeo-anim">🏆</div>
+      <h2 class="ganador-titulo">¡Ganaste!</h2>
+      <p class="ganador-texto">Completaste el Memotest del Mundial</p>
+      <p class="ganador-intentos">con <span id="intentosFinales"></span> intentos</p>
+      <button class="btn-jugar-nuevo" id="btnJugarNuevo">⚽ Jugar de nuevo</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
